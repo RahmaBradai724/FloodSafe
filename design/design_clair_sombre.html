@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>FloodSafe : interfaces clair et sombre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=block" rel="stylesheet">
+<style>
+  @page { size: A4 landscape; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #e9ebf0; }
+  body { font: 13px/1.4 "Inter", system-ui, sans-serif; color: #14161c; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { width: 297mm; height: 210mm; padding: 26px 32px; position: relative; overflow: hidden; page-break-after: always; break-after: page; background: #f6f7fa; }
+  .page:last-child { page-break-after: auto; }
+  .page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 16px; }
+  .page-head h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
+  .page-head p { margin: 4px 0 0; color: #5b6170; max-width: 640px; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #5b6170; }
+  .swatches { display: flex; gap: 6px; align-items: center; }
+  .swatches i { width: 22px; height: 22px; border-radius: 6px; display: inline-block; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+  .swatches small { margin-left: 8px; color: #5b6170; }
+  .row { display: flex; gap: 14px; justify-content: space-between; }
+  .shot { display: grid; gap: 8px; justify-items: center; }
+  .shot figcaption { font-size: 12px; font-weight: 600; color: #3b4150; }
+  .shot figcaption span { display: block; font-weight: 400; color: #747a88; text-align: center; }
+  figure { margin: 0; }
+
+  /* phone frame */
+  .phone { zoom: .7; width: 284px; height: 584px; border-radius: 44px; background: #0d0f14; padding: 7px; box-shadow: 0 18px 40px rgba(15,20,40,.22); }
+  .screen { position: relative; width: 270px; height: 570px; border-radius: 37px; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--font); }
+  .notch { position: absolute; z-index: 30; top: 9px; left: 50%; transform: translateX(-50%); width: 92px; height: 26px; border-radius: 20px; background: #000; }
+  .status { position: absolute; z-index: 29; top: 0; left: 0; right: 0; height: 40px; display: flex; justify-content: space-between; align-items: center; padding: 6px 26px 0; font: 600 12px var(--font); color: var(--status, var(--ink)); }
+  .homebar { position: absolute; z-index: 30; bottom: 7px; left: 50%; transform: translateX(-50%); width: 96px; height: 4px; border-radius: 3px; background: var(--ink); opacity: .55; }
+  .map { position: absolute; inset: 0; }
+
+  /* shared pieces, styled by the direction's variables */
+  .sheet { position: absolute; z-index: 10; left: 0; right: 0; bottom: 0; background: var(--surface); border-radius: var(--r) var(--r) 0 0; padding: 10px 16px 22px; box-shadow: 0 -10px 30px rgba(10,20,40,.12); }
+  .grab { width: 36px; height: 4px; border-radius: 3px; background: var(--line2); margin: 0 auto 10px; }
+  .h { font-weight: 700; font-size: 15px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .muted { color: var(--muted); }
+  .chips { display: flex; gap: 6px; margin: 0 0 10px; flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 999px; font-size: 10.5px; font-weight: 600; border: 1px solid var(--line); background: var(--surface2); color: var(--ink); }
+  .chip.on { background: var(--p); color: var(--on-p); border-color: var(--p); }
+  .chip svg { width: 11px; height: 11px; }
+  .btn { display: flex; justify-content: center; align-items: center; gap: 6px; height: 40px; border-radius: var(--btnr); background: var(--p); color: var(--on-p); font-weight: 700; font-size: 13px; }
+  .btn.ghost { background: transparent; color: var(--p); border: 1.5px solid var(--line2); }
+  .field { height: 40px; border-radius: var(--fieldr); background: var(--field); border: 1px solid var(--line); display: flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 12px; color: var(--muted); margin-bottom: 9px; }
+  .field svg { width: 14px; height: 14px; color: var(--muted); }
+  .label { font-size: 10.5px; font-weight: 600; margin: 0 0 4px 2px; color: var(--ink); }
+  .card { border-radius: var(--cr); border: 1px solid var(--line); background: var(--surface2); padding: 10px 11px; }
+  .rcard { display: grid; grid-template-columns: 34px 1fr auto; gap: 9px; align-items: center; margin-bottom: 7px; }
+  .rcard.sel { border: 1.5px solid var(--p); box-shadow: 0 0 0 3px var(--p-soft); }
+  .ricon { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: var(--p-soft); color: var(--p); }
+  .ricon svg { width: 17px; height: 17px; }
+  .rt { font-weight: 700; font-size: 12.5px; }
+  .rs { font-size: 10px; color: var(--muted); display: flex; gap: 6px; align-items: center; margin-top: 1px; }
+  .rv { text-align: right; font-weight: 700; font-size: 12.5px; }
+  .rv small { display: block; font-weight: 500; font-size: 10px; color: var(--muted); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .gauge { height: 7px; border-radius: 5px; background: var(--line); position: relative; margin: 7px 0 4px; }
+  .gauge b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--p); }
+  .gauge i { position: absolute; top: -3px; width: 2px; height: 13px; background: var(--ink); left: 66.6%; }
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 700; }
+  .float { position: absolute; z-index: 12; }
+  .fab { width: 38px; height: 38px; border-radius: 13px; display: grid; place-items: center; background: var(--surface); color: var(--ink); box-shadow: 0 6px 18px rgba(10,20,40,.16); }
+  .fab svg { width: 16px; height: 16px; }
+  .notif { position: absolute; z-index: 25; top: 44px; left: 10px; right: 10px; border-radius: 20px; padding: 10px 12px; display: grid; grid-template-columns: 30px 1fr; gap: 9px; background: var(--notif-bg); color: var(--notif-ink); box-shadow: 0 14px 34px rgba(0,0,0,.28); backdrop-filter: blur(14px); }
+  .notif .ico { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--p); color: var(--on-p); }
+  .notif .ico svg { width: 16px; height: 16px; }
+  .notif b { font-size: 11.5px; }
+  .notif p { margin: 1px 0 0; font-size: 10.5px; opacity: .85; }
+  .notif small { float: right; opacity: .6; font-size: 10px; }
+  .report { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .report div { border-radius: 12px; border: 1px solid var(--line); background: var(--surface2); font-size: 10px; font-weight: 600; padding: 8px 4px; text-align: center; display: grid; gap: 4px; justify-items: center; }
+  .report svg { width: 16px; height: 16px; }
+  .reasons { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 10px; }
+  .reasons span { font-size: 10.5px; font-weight: 600; padding: 5px 9px; border-radius: 9px; background: var(--p-soft); color: var(--p); }
+  .kv { display: flex; justify-content: space-between; font-size: 11px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  .kv:last-child { border: 0; }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 20px; letter-spacing: -0.03em; }
+  .logo i { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; background: var(--p); color: var(--on-p); }
+  .logo i svg { width: 16px; height: 16px; }
+
+  /* desktop frame (admin) */
+  .desk { zoom: .74; width: 1360px; height: 860px; border-radius: 18px; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--font); box-shadow: 0 24px 60px rgba(15,20,40,.22); display: grid; grid-template-columns: 220px 1fr; border: 1px solid rgba(0,0,0,.06); }
+  .side { background: var(--side); color: var(--side-ink); padding: 22px 16px; display: grid; align-content: start; gap: 4px; }
+  .side .logo { color: var(--side-ink); margin-bottom: 22px; font-size: 18px; }
+  .nav { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; font-size: 13.5px; font-weight: 500; opacity: .78; }
+  .nav.on { background: var(--side-on); opacity: 1; font-weight: 700; }
+  .nav svg { width: 17px; height: 17px; }
+  .main { padding: 24px 28px; display: grid; grid-template-rows: auto auto 1fr; gap: 18px; min-width: 0; }
+  .topline { display: flex; justify-content: space-between; align-items: center; }
+  .topline h2 { margin: 0; font-size: 24px; letter-spacing: -0.02em; }
+  .kpis { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 14px; }
+  .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--cr); padding: 16px 18px; }
+  .kpi small { color: var(--muted); font-size: 12.5px; }
+  .kpi strong { display: block; font-size: 30px; letter-spacing: -0.02em; margin-top: 4px; }
+  .grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 14px; min-height: 0; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--cr); padding: 16px 18px; min-height: 0; position: relative; overflow: hidden; }
+  .panel h3 { margin: 0 0 10px; font-size: 15px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  td, th { padding: 9px 6px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; }
+
+
+  /* page variants */
+  .page.night { background: #101219; color: #e8eaf0; }
+  .night .page-head p, .night .tag, .night .swatches small { color: #9aa1b2; }
+  .night .shot figcaption { color: #d7dae3; }
+  .night .shot figcaption span { color: #8c93a4; }
+  .night .phone { box-shadow: 0 18px 40px rgba(0,0,0,.5); background: #000; }
+  .night .desk { box-shadow: 0 24px 60px rgba(0,0,0,.55); border-color: rgba(255,255,255,.06); }
+  .mode { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; background: #e4e7ee; color: #2a2f3a; margin-left: 8px; vertical-align: middle; }
+  .night .mode { background: #232735; color: #e8eaf0; }
+
+  /* direction-specific touches (both modes) */
+  .B .sheet { backdrop-filter: blur(18px); border-top: 1px solid var(--line); }
+  .B .fab { backdrop-filter: blur(12px); border: 1px solid var(--line); }
+  .B.dk .sheet { box-shadow: 0 -10px 40px rgba(0,0,0,.5); }
+  .B.dk .btn { box-shadow: 0 0 24px rgba(142,168,255,.35); }
+  .B.lt .btn { box-shadow: 0 8px 20px rgba(76,95,224,.3); }
+  .B .kpi, .B .panel { backdrop-filter: blur(12px); }
+  .C .h { font-size: 17px; letter-spacing: -0.02em; }
+  .C .chip { border: 0; background: var(--p-soft); color: var(--p); }
+  .C .chip.on { background: var(--p); color: var(--on-p); }
+  .C .side { border-right: 1px solid var(--line); }
+  .C .nav.on { color: var(--p); }
+  .D .sheet { box-shadow: none; border-top: 1px solid var(--line); }
+  .D .h { font-weight: 800; letter-spacing: -0.03em; }
+  .D .chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .D .ricon { background: transparent; border: 1.5px solid var(--line2); color: var(--ink); }
+  .D .rcard.sel { box-shadow: none; border: 2px solid var(--ink); }
+  .D .side { border-right: 1px solid var(--line); }
+  .D .kpi strong { font-weight: 800; }
+
+  .cmp { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 20px rgba(15,20,40,.06); font-size: 12.5px; }
+  .cmp th, .cmp td { padding: 10px 12px; border-bottom: 1px solid #eceef3; vertical-align: top; }
+  .cmp th { background: #f1f3f7; color: #3b4150; }
+  .note { margin-top: 14px; padding: 13px 16px; border-radius: 14px; background: #fff; box-shadow: 0 6px 20px rgba(15,20,40,.06); }
+</style>
+<style id="themes"></style>
+</head>
+<body>
+<div id="doc"></div>
+<script>
+const ICON = {
+  drop: '<path d="M12 2.5c3.6 4.6 6.5 8.3 6.5 11.6A6.5 6.5 0 0 1 5.5 14.1C5.5 10.8 8.4 7.1 12 2.5Z" fill="currentColor"/>',
+  shield: '<path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Zm-1.2 13.6-3.4-3.4 1.4-1.4 2 2 4.6-4.6 1.4 1.4-6 6Z" fill="currentColor"/>',
+  bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" fill="currentColor"/>',
+  route: '<path d="M6 3a3 3 0 0 0-1 5.8V15a5 5 0 0 0 5 5h4.2A3 3 0 1 0 14 18h-4a3 3 0 0 1-3-3V8.8A3 3 0 0 0 6 3Zm12 2h-6v2h6a1 1 0 0 1 0 2h-4a3 3 0 0 0 0 6h1v-2h-1a1 1 0 0 1 0-2h4a3 3 0 0 0 0-6Z" fill="currentColor"/>',
+  search: '<path d="M10.5 3a7.5 7.5 0 0 1 6 12l4.3 4.3-1.4 1.4-4.3-4.3A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z" fill="currentColor"/>',
+  bell: '<path d="M12 3a6 6 0 0 0-6 6v4l-2 3v1h16v-1l-2-3V9a6 6 0 0 0-6-6Zm-2 16a2 2 0 0 0 4 0h-4Z" fill="currentColor"/>',
+  user: '<path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4 0-8 2-8 5v2h16v-2c0-3-4-5-8-5Z" fill="currentColor"/>',
+  back: '<path d="M15.5 4 7.5 12l8 8 1.4-1.4L10.3 12l6.6-6.6L15.5 4Z" fill="currentColor"/>',
+  locate: '<path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm9 3h-2.1A7 7 0 0 0 13 5.1V3h-2v2.1A7 7 0 0 0 5.1 11H3v2h2.1a7 7 0 0 0 5.9 5.9V21h2v-2.1a7 7 0 0 0 5.9-5.9H21v-2Z" fill="currentColor"/>',
+  layers: '<path d="m12 3 9 5-9 5-9-5 9-5Zm-7 9.3 7 3.9 7-3.9 2 1.1-9 5-9-5 2-1.1Z" fill="currentColor"/>',
+  water: '<path d="M3 15c2 0 2-1.5 4.5-1.5S9.5 15 12 15s2.5-1.5 4.5-1.5S19 15 21 15v2c-2 0-2-1.5-4.5-1.5S14.5 17 12 17s-2.5-1.5-4.5-1.5S5 17 3 17v-2Zm0 4c2 0 2-1.5 4.5-1.5S9.5 19 12 19s2.5-1.5 4.5-1.5S19 19 21 19v2c-2 0-2-1.5-4.5-1.5S14.5 21 12 21s-2.5-1.5-4.5-1.5S5 21 3 21v-2ZM12 3l5 8H7l5-8Z" fill="currentColor"/>',
+  ok: '<path d="M9.5 16.2 5.3 12l-1.4 1.4 5.6 5.6L20.1 8.4 18.7 7 9.5 16.2Z" fill="currentColor"/>',
+  drain: '<path d="M4 5h16v14H4V5Zm2 2v10h12V7H6Zm2 2h2v6H8V9Zm3 0h2v6h-2V9Zm3 0h2v6h-2V9Z" fill="currentColor"/>',
+  grid: '<path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z" fill="currentColor"/>',
+  map: '<path d="m9 3 6 2 6-2v16l-6 2-6-2-6 2V5l6-2Zm1 2.4v12.2l4 1.3V6.7l-4-1.3Z" fill="currentColor"/>',
+  chart: '<path d="M4 19h16v2H4v-2Zm1-3 4-5 4 3 5-7 1.6 1.2-6.2 8.6-4-3-3 3.8L5 16Z" fill="currentColor"/>',
+  flag: '<path d="M5 3h2v18H5V3Zm3 1h10l-2 4 2 4H8V4Z" fill="currentColor"/>',
+  play: '<path d="M8 5v14l11-7L8 5Z" fill="currentColor"/>',
+};
+const svg = (n, extra = "") => `<svg viewBox="0 0 24 24" ${extra}>${ICON[n]}</svg>`;
+
+
+const RISK = { moderate: "#D9A400", high: "#EA580C", very: "#BE123C", exposed: "#6366F1" };
+const RISK_DARK = { moderate: "#FACC15", high: "#FB923C", very: "#FB4868", exposed: "#A5B4FC" };
+
+// every direction has a light (lt) and a dark (dk) theme, and a matching map
+const THEMES = {
+  A: {
+    name: "A · « Ride »", font: "Plus Jakarta Sans",
+    text: "Inspirée de votre exemple : carte en plein écran, feuille qui monte du bas, cartes arrondies, filtres en pilules et un grand bouton d'action. Familière pour qui utilise Uber, Bolt ou Careem.",
+    lt: { p: "#0B4F6C", "on-p": "#fff", "p-soft": "#E2EEF3", bg: "#F3F5F7", surface: "#fff", surface2: "#fff", field: "#F4F6F8", ink: "#0E1A2B", muted: "#6A7888", line: "#E4E8EE", line2: "#D3DAE2", "notif-bg": "rgba(255,255,255,.96)", "notif-ink": "#0E1A2B", side: "#0B4F6C", "side-ink": "#fff", "side-on": "rgba(255,255,255,.14)" },
+    dk: { p: "#5CC8F0", "on-p": "#04202C", "p-soft": "rgba(92,200,240,.14)", bg: "#0B1218", surface: "#121C24", surface2: "#16222C", field: "#1A2731", ink: "#E8F1F6", muted: "#8DA0AE", line: "#22313C", line2: "#2E404D", "notif-bg": "rgba(22,34,44,.95)", "notif-ink": "#E8F1F6", side: "#08161E", "side-ink": "#E8F1F6", "side-on": "rgba(92,200,240,.14)" },
+    shape: { r: "26px", cr: "16px", btnr: "14px", fieldr: "13px" },
+    map: {
+      lt: { land: "#EDEFE9", block: "#E2E5DC", road: "#FFFFFF", major: "#F6D7A4", water: "#B6D6E8", park: "#D3E7C6", route: "#0B4F6C" },
+      dk: { land: "#0F1A22", block: "#15232D", road: "#22333F", major: "#4A4130", water: "#0A2433", park: "#12261E", route: "#5CC8F0" },
+    },
+  },
+  B: {
+    name: "B · « Verre »", font: "Space Grotesk",
+    text: "Cartes en verre dépoli posées sur la carte, couleurs de risque lumineuses, ambiance « tempête ». Le mode sombre est le plus marquant pour la vidéo ; le mode clair garde l'effet verre sur fond bleuté.",
+    lt: { p: "#4C5FE0", "on-p": "#fff", "p-soft": "rgba(76,95,224,.12)", bg: "#EEF1FA", surface: "rgba(255,255,255,.78)", surface2: "rgba(255,255,255,.6)", field: "rgba(255,255,255,.7)", ink: "#141A33", muted: "#5F6888", line: "rgba(20,26,51,.09)", line2: "rgba(20,26,51,.16)", "notif-bg": "rgba(255,255,255,.85)", "notif-ink": "#141A33", side: "rgba(255,255,255,.6)", "side-ink": "#141A33", "side-on": "rgba(76,95,224,.12)" },
+    dk: { p: "#8EA8FF", "on-p": "#0A0F1E", "p-soft": "rgba(142,168,255,.14)", bg: "#090D18", surface: "rgba(20,26,44,.86)", surface2: "rgba(255,255,255,.04)", field: "rgba(255,255,255,.05)", ink: "#EDF1FF", muted: "#8A94B2", line: "rgba(255,255,255,.09)", line2: "rgba(255,255,255,.18)", "notif-bg": "rgba(28,34,56,.9)", "notif-ink": "#EDF1FF", side: "#0E1424", "side-ink": "#EDF1FF", "side-on": "rgba(142,168,255,.16)" },
+    shape: { r: "24px", cr: "16px", btnr: "14px", fieldr: "12px" },
+    map: {
+      lt: { land: "#E9EDF8", block: "#DCE2F2", road: "#FFFFFF", major: "#D3DBFF", water: "#C3D2FF", park: "#D8EEE4", route: "#4C5FE0" },
+      dk: { land: "#111725", block: "#161E31", road: "#26304A", major: "#34436A", water: "#081631", park: "#122421", route: "#8EA8FF" },
+    },
+  },
+  C: {
+    name: "C · « Doux »", font: "Inter",
+    text: "Style éditorial doux, proche de Material You : surfaces lavande, grandes typographies, coins très arrondis, boutons en pilule. Calme et moderne ; c'est aussi le plus proche du site actuel.",
+    lt: { p: "#4F46E5", "on-p": "#fff", "p-soft": "#ECEBFF", bg: "#F6F5FB", surface: "#fff", surface2: "#F7F6FD", field: "#F3F2FA", ink: "#17161F", muted: "#6D6B80", line: "#ECEAF5", line2: "#DCD9EC", "notif-bg": "rgba(255,255,255,.97)", "notif-ink": "#17161F", side: "#fff", "side-ink": "#17161F", "side-on": "#ECEBFF" },
+    dk: { p: "#A5A0FF", "on-p": "#15122E", "p-soft": "rgba(165,160,255,.14)", bg: "#0F0E17", surface: "#1A1926", surface2: "#201F2E", field: "#232232", ink: "#EEEDF7", muted: "#9896AE", line: "#2A2939", line2: "#383650", "notif-bg": "rgba(32,31,46,.96)", "notif-ink": "#EEEDF7", side: "#15141F", "side-ink": "#EEEDF7", "side-on": "rgba(165,160,255,.14)" },
+    shape: { r: "32px", cr: "22px", btnr: "999px", fieldr: "16px" },
+    map: {
+      lt: { land: "#F1F0F6", block: "#E7E5F0", road: "#FFFFFF", major: "#FFE3AE", water: "#CBE0FF", park: "#DAF0E1", route: "#4F46E5" },
+      dk: { land: "#13121C", block: "#1B1A27", road: "#2A2840", major: "#4A3D63", water: "#141A3A", park: "#15261F", route: "#A5A0FF" },
+    },
+  },
+  D: {
+    name: "D · « Minimal »", font: "Manrope",
+    text: "Noir et blanc, sans décor : seules les couleurs de risque et l'itinéraire ont de la couleur, donc l'œil va droit à l'essentiel. Typographie forte, traits fins, style « Apple Plans / Linear ».",
+    lt: { p: "#111111", "on-p": "#fff", "p-soft": "#EFEFEC", bg: "#FAFAF8", surface: "#fff", surface2: "#fff", field: "#F3F3F0", ink: "#111111", muted: "#6B6B66", line: "#E7E7E3", line2: "#D4D4CF", "notif-bg": "rgba(255,255,255,.97)", "notif-ink": "#111", side: "#fff", "side-ink": "#111", "side-on": "#EFEFEC" },
+    dk: { p: "#F5F5F2", "on-p": "#0E0E0F", "p-soft": "rgba(255,255,255,.08)", bg: "#0B0B0C", surface: "#141415", surface2: "#18181A", field: "#1C1C1E", ink: "#F5F5F2", muted: "#9A9A94", line: "#26262A", line2: "#37373C", "notif-bg": "rgba(28,28,30,.96)", "notif-ink": "#F5F5F2", side: "#0B0B0C", "side-ink": "#F5F5F2", "side-on": "rgba(255,255,255,.08)" },
+    shape: { r: "22px", cr: "14px", btnr: "12px", fieldr: "12px" },
+    map: {
+      lt: { land: "#F2F2EF", block: "#E6E6E2", road: "#FFFFFF", major: "#DADAD4", water: "#D3E2E8", park: "#DDE8DA", route: "#111111" },
+      dk: { land: "#0E0E10", block: "#18181B", road: "#26262A", major: "#3A3A3F", water: "#0D1B22", park: "#13201A", route: "#F5F5F2" },
+    },
+  },
+};
+
+// write the CSS variables for the 8 themes
+let themeCss = "";
+for (const [id, T] of Object.entries(THEMES)) {
+  for (const mode of ["lt", "dk"]) {
+    const vars = { font: `"${T.font}", sans-serif`, ...T[mode], ...T.shape };
+    themeCss += `.${id}.${mode}{${Object.entries(vars).map(([k, v]) => `--${k}:${v}`).join(";")};--status:var(--ink)}\n`;
+  }
+}
+document.getElementById("themes").textContent = themeCss;
+
+const isDark = (t) => t.mode === "dk";
+const riskOf = (t) => (isDark(t) ? RISK_DARK : RISK);
+
+// a stylised coastal town; kind: plain | exposed | routes | alert | segment | rain
+function mapSVG(t, kind, w = 270, h = 570, shift = 0) {
+  const m = THEMES[t.id].map[t.mode];
+  const R = riskOf(t);
+  const dark = isDark(t);
+  let s = `<svg class="map" viewBox="0 0 270 570" preserveAspectRatio="xMidYMid slice" width="${w}" height="${h}"><rect width="270" height="570" fill="${m.land}"/><g transform="translate(0 ${shift})">`;
+  for (let y = 40; y < 470; y += 34) for (let x = 6; x < 270; x += 46) {
+    if ((x * 7 + y * 3) % 11 === 0) continue;
+    s += `<rect x="${x}" y="${y}" width="${36 + ((x + y) % 3) * 3}" height="${24 + (x % 2) * 3}" rx="3" fill="${m.block}"/>`;
+  }
+  s += `<path d="M150 70 h70 v55 h-70z" fill="${m.park}"/><path d="M14 380 h52 v40 h-52z" fill="${m.park}"/>`;
+  s += `<path d="M0 470 C 70 440, 120 490, 180 455 S 250 420, 270 430 L270 760 L0 760Z" fill="${m.water}"/>`;
+  ["M0 140 H270", "M0 208 H270", "M0 290 H270", "M0 360 H270", "M48 0 V470", "M140 0 V460", "M196 0 V440", "M96 30 V470", "M240 0 V430"].forEach(
+    (d) => (s += `<path d="${d}" stroke="${m.road}" stroke-width="5" fill="none"/>`)
+  );
+  s += `<path d="M0 250 C 80 240, 160 262, 270 238" stroke="${m.major}" stroke-width="9" fill="none"/>`;
+  s += `<path d="M0 418 C 70 400, 150 425, 270 395" stroke="${m.major}" stroke-width="9" fill="none"/>`;
+  s += `<path d="M120 0 C 128 120, 112 300, 132 470" stroke="${dark ? "#3d7fb8" : "#7FB8E6"}" stroke-opacity=".6" stroke-width="3" fill="none"/>`;
+  const exposed = () =>
+    ["M20 432 L70 425", "M150 440 L205 428", "M110 392 L132 470", "M205 360 L250 352"].forEach(
+      (d) => (s += `<path d="${d}" stroke="${R.exposed}" stroke-width="4" stroke-dasharray="4 5" fill="none" stroke-linecap="round"/>`)
+    );
+  const red = () =>
+    [["M20 432 L70 425", R.high], ["M150 440 L205 428", R.very], ["M110 392 L132 470", R.very], ["M205 360 L250 352", R.high], ["M70 360 L140 360", R.moderate], ["M196 290 L240 290", R.moderate], ["M96 300 L96 360", R.high]].forEach(
+      ([d, c]) => (s += `<path d="${d}" stroke="${c}" stroke-width="5" fill="none" stroke-linecap="round"/>`)
+    );
+  const pin = (x, y, c) => (s += `<circle cx="${x}" cy="${y}" r="7" fill="${c}" stroke="${dark ? m.land : "#fff"}" stroke-width="3"/>`);
+  if (kind === "exposed") exposed();
+  if (kind === "routes" || kind === "alert") {
+    if (kind === "alert") red(); else exposed();
+    s += `<path d="M48 330 L48 360 L96 360 L96 418 L196 410 L196 360" stroke="${dark ? "#6b7690" : "#9aa6b5"}" stroke-width="6" stroke-dasharray="1 9" stroke-linecap="round" fill="none"/>`;
+    s += `<path d="M48 330 L48 208 L196 208 L196 360" stroke="${dark ? m.land : "#fff"}" stroke-width="10" fill="none" stroke-linejoin="round"/>`;
+    s += `<path d="M48 330 L48 208 L196 208 L196 360" stroke="${m.route}" stroke-width="6" fill="none" stroke-linejoin="round"/>`;
+    pin(48, 330, "#16A34A"); pin(196, 360, m.route);
+  }
+  if (kind === "segment") {
+    exposed();
+    s += `<path d="M96 300 L96 360" stroke="${dark ? m.land : "#fff"}" stroke-width="12" stroke-linecap="round"/><path d="M96 300 L96 360" stroke="${R.high}" stroke-width="7" stroke-linecap="round"/>`;
+    s += `<circle cx="96" cy="330" r="22" fill="${R.high}" fill-opacity=".15" stroke="${R.high}" stroke-opacity=".5"/>`;
+  }
+  s += "</g>";
+  if (kind === "alert" || kind === "rain") {
+    s += `<rect width="270" height="570" fill="#0b1530" fill-opacity="${dark ? 0.25 : 0.1}"/>`;
+    for (let i = 0; i < 80; i++) {
+      const x = (i * 53) % 280, y = (i * 97) % 580;
+      s += `<line x1="${x}" y1="${y}" x2="${x - 4}" y2="${y + 14}" stroke="${dark ? "#c9d6ff" : "#6f88b8"}" stroke-opacity=".45" stroke-width="1.1"/>`;
+    }
+  }
+  return s + "</svg>";
+}
+
+const chrome = (inner) => `<div class="phone"><div class="screen"><div class="notch"></div><div class="status"><span>9:41</span><span>●●● ▮</span></div>${inner}<div class="homebar"></div></div></div>`;
+
+const loginForm = (t, extraStyle = "") => `<div class="sheet" style="padding-top:18px;${extraStyle}">
+    <div class="h" style="font-size:18px">Bon retour 👋</div>
+    <div class="muted" style="font-size:11px;margin:-4px 0 12px">Les routes inondables de Nabeul, avant de partir.</div>
+    <div class="label">E-mail</div><div class="field">${svg("user")}nom@exemple.tn</div>
+    <div class="label">Mot de passe</div><div class="field">••••••••••</div>
+    <div class="btn" style="margin-top:4px">Se connecter</div>
+    <div style="text-align:center;font-size:11px;margin-top:10px" class="muted">Pas de compte ? <b style="color:var(--p)">Créer un compte</b></div>
+  </div>`;
+const logo = (top) => `<div style="position:absolute;z-index:5;left:20px;right:20px;top:${top}px"><div class="logo" style="color:var(--ink)"><i>${svg("drop")}</i>FloodSafe</div></div>`;
+
+function login(t) {
+  if (t.id === "A")
+    return chrome(`<div style="position:absolute;inset:0 0 46% 0;overflow:hidden">${mapSVG(t, "exposed")}</div>${logo(196)}${loginForm(t)}`);
+  if (t.id === "B") {
+    const fade = isDark(t) ? "rgba(9,13,24,.2),rgba(9,13,24,.85)" : "rgba(238,241,250,.1),rgba(238,241,250,.8)";
+    return chrome(`${mapSVG(t, "alert")}<div style="position:absolute;inset:0;background:linear-gradient(180deg,${fade})"></div>${logo(120)}${loginForm(t)}`);
+  }
+  if (t.id === "C")
+    return chrome(`<div style="position:absolute;inset:0 0 50% 0;overflow:hidden;border-radius:0 0 40px 40px">${mapSVG(t, "rain")}</div>${logo(200)}${loginForm(t)}`);
+  // D: typography first, a small map card, then the form
+  return chrome(`<div style="position:absolute;left:20px;right:20px;top:58px">
+      <div class="logo" style="font-size:16px"><i style="width:26px;height:26px">${svg("drop")}</i>FloodSafe</div>
+      <div style="font-size:27px;font-weight:800;letter-spacing:-0.04em;line-height:1.05;margin-top:18px">Routes sûres,<br>même sous la pluie.</div>
+      <div style="height:92px;border-radius:16px;overflow:hidden;margin-top:14px;border:1px solid var(--line);position:relative">${mapSVG(t, "exposed", 230, 92, -90).replace('class="map"', 'class="map" style="position:absolute;inset:0;width:100%;height:100%"')}</div>
+    </div>${loginForm(t, "background:var(--bg)")}`);
+}
+
+function home(t) {
+  return chrome(`${mapSVG(t, "exposed", 270, 570, -150)}
+    <div class="float" style="top:48px;left:14px;right:14px;display:flex;gap:8px">
+      <div class="field" style="flex:1;margin:0;background:var(--surface);box-shadow:0 8px 20px rgba(10,20,40,.14);border:0">${svg("search")}<span>Où allez-vous ?</span></div>
+      <div class="fab">${svg("user")}</div>
+    </div>
+    <div class="float" style="top:100px;left:14px"><span class="badge" style="background:var(--surface);color:var(--ink);box-shadow:0 6px 14px rgba(10,20,40,.12)"><span class="dot" style="background:#16A34A"></span>Pas d'alerte pluie</span></div>
+    <div class="float" style="right:14px;top:300px;display:grid;gap:8px"><div class="fab">${svg("layers")}</div><div class="fab">${svg("locate")}</div></div>
+    <div class="sheet"><div class="grab"></div>
+      <div class="h">Bonjour Rahma</div>
+      <div class="card"><div style="display:flex;justify-content:space-between;font-size:11.5px"><b>Pluie sur 24 h</b><span class="muted">12 / 44 mm</span></div>
+        <div class="gauge"><b style="width:18%"></b><i></i></div>
+        <div class="muted" style="font-size:10px">12 h tombées + 12 h prévues · seuil provisoire</div></div>
+      <div style="display:flex;gap:7px;margin-top:10px">
+        <div class="card" style="flex:1;display:flex;gap:7px;align-items:center;font-size:10.5px"><span class="dot" style="background:${riskOf(t).exposed}"></span><b>945</b> routes exposées</div>
+        <div class="card" style="flex:1;display:flex;gap:7px;align-items:center;font-size:10.5px">${svg("flag", 'width="13" height="13"')}<b>2</b> signalements</div>
+      </div>
+    </div>`);
+}
+
+function routes(t) {
+  const R = riskOf(t);
+  const card = (sel, ic, title, sub, risk, v, km) => `<div class="card rcard ${sel ? "sel" : ""}"><div class="ricon">${svg(ic)}</div>
+      <div><div class="rt">${title}</div><div class="rs"><span class="dot" style="background:${risk}"></span>${sub}</div></div>
+      <div class="rv">${v}<small>${km}</small></div></div>`;
+  return chrome(`${mapSVG(t, "routes", 270, 570, -110)}
+    <div class="float" style="top:48px;left:14px"><div class="fab">${svg("back")}</div></div>
+    <div class="sheet"><div class="grab"></div>
+      <div class="h">Choisir un itinéraire</div>
+      <div class="chips"><span class="chip on">${svg("shield")}Plus sûr</span><span class="chip">${svg("bolt")}Plus rapide</span><span class="chip">${svg("route")}Autres</span></div>
+      ${card(true, "shield", "Plus sûr", "0 tronçon à risque", "#16A34A", "11 min", "6,1 km")}
+      ${card(false, "bolt", "Le plus rapide", "15 tronçons à risque élevé", R.very, "10 min", "5,8 km")}
+      ${card(false, "route", "Par Bd de l'Environnement", "4 tronçons modérés", R.moderate, "13 min", "7,0 km")}
+      <div class="btn" style="margin-top:4px">Démarrer · arrivée 9:52</div>
+    </div>`);
+}
+
+function alertScreen(t) {
+  const R = riskOf(t);
+  return chrome(`${mapSVG(t, "alert", 270, 570, -150)}
+    <div class="notif"><div class="ico">${svg("bell")}</div><div><small>maintenant</small><b>FloodSafe · Alerte inondation</b><p>Forte pluie prévue à Nabeul. Votre itinéraire a été recalculé.</p></div></div>
+    <div class="sheet"><div class="grab"></div>
+      <div class="card" style="border-color:${R.very}55;background:${isDark(t) ? "rgba(251,72,104,.09)" : "#FFF1F3"}">
+        <div style="display:flex;align-items:center;gap:7px;font-weight:700;font-size:12.5px;color:${R.very}">${svg("water", 'width="16" height="16"')}Alerte pluie dans la zone</div>
+        <div style="font-size:11px;margin-top:4px">52 mm en 24 h · seuil 44 mm</div>
+        <div class="gauge"><b style="width:78%;background:${R.very}"></b><i></i></div>
+      </div>
+      <div class="card rcard sel" style="margin-top:9px"><div class="ricon">${svg("shield")}</div><div><div class="rt">Itinéraire recalculé</div><div class="rs">Évite 15 tronçons à risque élevé</div></div><div class="rv">+20 s<small>11 min</small></div></div>
+      <div style="display:flex;gap:8px"><div class="btn ghost" style="flex:1">Reporter</div><div class="btn" style="flex:1.4">Continuer</div></div>
+    </div>`);
+}
+
+function segment(t) {
+  const R = riskOf(t);
+  return chrome(`${mapSVG(t, "segment", 270, 570, -150)}
+    <div class="float" style="top:48px;left:14px"><div class="fab">${svg("back")}</div></div>
+    <div class="sheet"><div class="grab"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><div class="h" style="margin:0">Avenue Habib Bourguiba</div><div class="muted" style="font-size:10.5px">Passage prévu vers 9:46</div></div>
+        <span class="badge" style="background:${R.high}22;color:${R.high}">● Élevé</span></div>
+      <div class="label" style="margin-top:10px">Pourquoi ce tronçon ?</div>
+      <div class="reasons"><span>Point bas</span><span>Proche d'un oued</span><span>Cuvette</span></div>
+      <div class="card" style="padding:4px 11px;margin-bottom:10px"><div class="kv"><span class="muted">Confiance</span><b>Élevée</b></div><div class="kv"><span class="muted">Classement de la zone</span><b>Top 2 %</b></div></div>
+      <div class="label">Vous êtes sur place ?</div>
+      <div class="report"><div>${svg("water")}Inondée</div><div>${svg("ok")}Pas d'eau</div><div>${svg("drain")}Avaloir bouché</div></div>
+    </div>`);
+}
+
+function admin(t) {
+  const R = riskOf(t);
+  const dark = isDark(t);
+  const bars = Array.from({ length: 40 }, (_, i) => Math.max(0.3, 7 * Math.exp(-((i - 26) ** 2) / 40) + 3 * Math.exp(-((i - 11) ** 2) / 12)));
+  const total = Array.from({ length: 40 }, (_, i) => 20 + 85 * Math.exp(-((i - 24) ** 2) / 120));
+  const W = 560, H = 190, x = (i) => 36 + (i / 39) * (W - 50), y1 = (v) => 90 - (v / 8) * 70, y2 = (v) => 180 - (v / 110) * 80;
+  let chart = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">`;
+  bars.forEach((v, i) => (chart += `<rect x="${x(i) - 4}" y="${y1(v)}" width="8" height="${90 - y1(v)}" rx="2" fill="${dark ? "#5B7BFF" : "#3B82F6"}" opacity="${i < 25 ? 1 : 0.35}"/>`));
+  chart += `<line x1="36" x2="${W - 14}" y1="${y2(44)}" y2="${y2(44)}" stroke="${R.very}" stroke-dasharray="5 4" stroke-width="1.5"/><text x="${W - 14}" y="${y2(44) - 5}" text-anchor="end" font-size="11" fill="${R.very}" font-weight="700" dy="16">seuil 44 mm</text>`;
+  chart += `<path d="${total.map((v, i) => `${i ? "L" : "M"}${x(i)},${y2(v)}`).join("")}" fill="none" stroke="var(--p)" stroke-width="2.5"/>`;
+  chart += `<text x="36" y="12" font-size="11" fill="var(--muted)">Pluie horaire (mm/h)</text><text x="36" y="108" font-size="11" fill="var(--muted)">Cumul 24 h (mm)</text></svg>`;
+  const bg = t.id === "B" ? `background:${dark ? "radial-gradient(1200px 600px at 80% -10%,#1c2a5c,#090D18)" : "radial-gradient(1200px 600px at 80% -10%,#d6defe,#EEF1FA)"};` : "";
+  return `<div class="desk ${t.id} ${t.mode}" style="${bg}">
+    <aside class="side"><div class="logo"><i>${svg("drop")}</i>FloodSafe</div>
+      <div class="nav on">${svg("grid")}Vue d'ensemble</div><div class="nav">${svg("map")}Carte de la zone</div><div class="nav">${svg("bell")}Alertes</div><div class="nav">${svg("flag")}Signalements</div><div class="nav">${svg("chart")}Modèle</div><div class="nav">${svg("play")}Démo orage</div></aside>
+    <main class="main">
+      <div class="topline"><div><div class="muted" style="font-size:13px">Lundi 19 janvier · 07:00</div><h2>Vue d'ensemble · Nabeul</h2></div>
+        <div class="chips" style="margin:0"><span class="chip on">Réel</span><span class="chip">Orage simulé</span><span class="chip">Temps sec</span></div></div>
+      <div class="kpis">
+        <div class="kpi" style="background:${dark ? "rgba(251,72,104,.09)" : "#FFF1F3"};border-color:${R.very}44"><small style="color:${R.very};font-weight:700">● Alerte pluie active</small><strong>52 mm <span style="font-size:15px" class="muted">/ 44 mm en 24 h</span></strong><div class="gauge"><b style="width:78%;background:${R.very}"></b><i></i></div></div>
+        <div class="kpi"><small>Utilisateurs</small><strong>1 248</strong></div>
+        <div class="kpi"><small>Itinéraires aujourd'hui</small><strong>3 412</strong></div>
+        <div class="kpi"><small>Signalements</small><strong>17</strong></div>
+      </div>
+      <div class="grid">
+        <div class="panel"><h3>Orage en cours</h3>${chart}
+          <table><tr><th>Heure</th><th>Événement</th></tr><tr><td>05:00</td><td>Seuil franchi : 189 tronçons passent en alerte élevée</td></tr><tr><td>06:12</td><td>Signalement « route inondée », Av. H. Bourguiba</td></tr></table></div>
+        <div class="panel" style="padding:0">${mapSVG(t, "alert", "100%", "100%").replace('class="map"', 'class="map" style="position:absolute;inset:0;width:100%;height:100%"')}
+          <div style="position:absolute;left:14px;top:14px"><span class="badge" style="background:var(--surface);color:var(--ink)">Routes en alerte · signalements</span></div></div>
+      </div>
+    </main></div>`;
+}
+
+const SCREENS = [
+  ["Connexion", "accueil et formulaire", login],
+  ["Accueil", "pas d'alerte, routes exposées", home],
+  ["Choix d'itinéraire", "plus sûr / plus rapide", routes],
+  ["Alerte", "notification et trajet recalculé", alertScreen],
+  ["Détail du tronçon", "pourquoi + signaler", segment],
+];
+const MODE_LABEL = { lt: "☀ Clair", dk: "☾ Sombre" };
+const sw = (id, mode) => { const v = THEMES[id][mode]; return [v.p, v["p-soft"], v.bg, v.surface, v.ink]; };
+const swatches = (id, mode) => `<div class="swatches">${sw(id, mode).map((c) => `<i style="background:${c}"></i>`).join("")}</div>`;
+
+let html = `<section class="page" style="display:grid;align-content:center;gap:20px;background:linear-gradient(140deg,#0f1838,#1e2a5a);color:#fff">
+  <div class="tag" style="color:#8fb4ff">FloodSafe · zone pilote de Nabeul</div>
+  <h1 style="font-size:42px;margin:0;letter-spacing:-0.03em;max-width:860px">Propositions d'interface : 4 styles, chacun en clair et en sombre</h1>
+  <p style="font-size:15px;max-width:800px;color:#dbe4ff;margin:0">Pour chaque style : les 5 écrans de l'application usager en mode clair, puis en mode sombre, puis le tableau de bord admin dans les deux modes. Les couleurs de risque restent les mêmes partout (éclaircies en mode sombre pour rester lisibles).</p>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:6px">${Object.entries(THEMES).map(([id, T]) => `<div style="background:rgba(255,255,255,.08);border-radius:16px;padding:14px 16px">
+      <b style="font-size:15px">${T.name}</b><div style="font-size:12px;color:#b9c6ec;margin:2px 0 8px">Police : ${T.font}</div>
+      <div style="display:grid;gap:6px;font-size:11px;color:#cdd7f5"><div style="display:flex;justify-content:space-between;align-items:center">Clair ${swatches(id, "lt")}</div><div style="display:flex;justify-content:space-between;align-items:center">Sombre ${swatches(id, "dk")}</div></div></div>`).join("")}</div>
+  <p style="font-size:12px;color:#9fb0dd;margin:0">Maquettes originales réalisées pour FloodSafe le 16/11/2026. Fond de carte stylisé (pas une vraie carte de Nabeul). Les chiffres d'usage sont fictifs ; l'orage (52 mm / seuil 44 mm) et les 15 tronçons viennent de la démo.</p>
+</section>`;
+
+for (const [id, T] of Object.entries(THEMES)) {
+  for (const mode of ["lt", "dk"]) {
+    const t = { id, mode };
+    html += `<section class="page ${mode === "dk" ? "night" : ""}"><div class="page-head"><div><span class="tag">Style ${id} · application usager</span><h1>${T.name}<span class="mode">${MODE_LABEL[mode]}</span></h1><p>${mode === "lt" ? T.text : "Même écrans en mode sombre : à activer automatiquement la nuit, pendant une alerte, ou selon le réglage du téléphone."}</p></div>
+      <div class="swatches">${sw(id, mode).map((c) => `<i style="background:${c}"></i>`).join("")}<small>${T.font}</small></div></div>
+      <div class="row">${SCREENS.map(([title, sub, fn]) => `<figure class="shot"><div class="${id} ${mode}">${fn(t)}</div><figcaption>${title}<span>${sub}</span></figcaption></figure>`).join("")}</div></section>`;
+  }
+  for (const mode of ["lt", "dk"]) {
+    html += `<section class="page ${mode === "dk" ? "night" : ""}"><div class="page-head"><div><span class="tag">Style ${id} · tableau de bord admin</span><h1>${T.name} · admin<span class="mode">${MODE_LABEL[mode]}</span></h1><p>État de l'alerte, orage en cours avec le seuil de 44 mm, carte des routes en alerte et journal des événements.</p></div></div>
+      <div style="display:grid;place-items:center">${admin({ id, mode })}</div></section>`;
+  }
+}
+
+html += `<section class="page"><div class="page-head"><div><span class="tag">Choisir</span><h1>Comparaison</h1><p>Les 4 styles gardent les mêmes règles : le niveau de risque est toujours écrit en mots, pas de probabilité affichée, l'avertissement reste visible, et une route n'est « en alerte » que si le seuil de pluie est franchi.</p></div></div>
+  <table class="cmp"><tr><th></th><th>A · « Ride »</th><th>B · « Verre »</th><th>C · « Doux »</th><th>D · « Minimal »</th></tr>
+  <tr><td><b>Impression</b></td><td>Familière, « app de transport »</td><td>Spectaculaire, technique</td><td>Calme, éditoriale</td><td>Sobre, premium</td></tr>
+  <tr><td><b>Mode clair</b></td><td>Très lisible de jour</td><td>Joli mais l'effet verre se voit moins</td><td>Très lisible, doux</td><td>Très lisible, le plus épuré</td></tr>
+  <tr><td><b>Mode sombre</b></td><td>Bon, bleu pétrole lumineux</td><td>Le meilleur : c'est son mode « naturel »</td><td>Bon, lavande sur fond violet nuit</td><td>Très bon, risques très visibles</td></tr>
+  <tr><td><b>Couleurs de risque</b></td><td>Ressortent bien</td><td>Ressortent très bien en sombre</td><td>Ressortent bien</td><td>Ressortent le plus (seules couleurs)</td></tr>
+  <tr><td><b>Pour la vidéo de démo</b></td><td>Claire et rassurante</td><td>La plus marquante avec la pluie</td><td>Élégante, moins dramatique</td><td>Moderne, très « produit »</td></tr>
+  <tr><td><b>Effort pour l'appliquer</b></td><td>Moyen : feuille du bas, cartes d'itinéraire</td><td>Moyen + flou (plus lourd sur vieux téléphones)</td><td>Faible : proche de l'existant</td><td>Faible à moyen</td></tr>
+  <tr><td><b>Fond de carte réel</b></td><td>CARTO Voyager / Dark Matter</td><td>CARTO Positron / Dark Matter</td><td>CARTO Positron / Dark Matter</td><td>CARTO Positron / Dark Matter (gris)</td></tr>
+  </table>
+  <div class="note"><b>Suggestion :</b> A ou D pour l'application usager, avec le mode sombre automatique (réglage du téléphone, et forcé pendant une alerte). Pour la vidéo de démo, le mode sombre rend l'orage plus spectaculaire. Indiquez le style choisi (ou un mélange, par exemple « A clair + admin D sombre ») et je l'applique au site, avec un bouton clair / sombre.</div>
+</section>`;
+document.getElementById("doc").innerHTML = html;
+</script>
+</body>
+</html>

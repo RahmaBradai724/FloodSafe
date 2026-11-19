@@ -1,0 +1,22 @@
+{
+ "source": "dépôt du modèle (competition), docs/MODEL_CONTRACT.md section 6 et reports/tn_terrain/, au 31/10/2026",
+ "budget_high": "2 % de chaque zone",
+ "tests": [
+  {"name": "13 inondations méditerranéennes, une laissée de côté à la fois", "roc_auc": 0.74, "baseline_roc_auc": 0.56,
+   "baseline": "indice multicritère V1", "recall_high": 0.115, "precision_high": 0.32, "status": "solide"},
+  {"name": "6 pays, un laissé de côté à la fois", "roc_auc": 0.76, "recall_high": 0.17, "precision_high": 0.33,
+   "status": "solide"},
+  {"name": "Nabeul 2018, Tunisie exclue de l'entraînement", "roc_auc": 0.79, "recall_high": 0.33, "status": "solide"},
+  {"name": "Enfidha, janvier 2026 (carte radar, jamais vue)", "roc_auc": 0.955, "baseline_roc_auc": 0.885,
+   "baseline": "règle : bas et proche d'un oued", "recall_high": 0.69, "precision_high": 0.20,
+   "status": "signal positif, non interprété : 29 routes inondées en 3 endroits, sous le minimum de 30 fixé à l'avance"},
+  {"name": "Bizerte, janvier 2026 (même orage)", "status": "pas de résultat exploitable : la carte radar montrait surtout un marais, 7 routes inondées"}
+ ],
+ "limits": [
+  "échoue sur les crues urbaines torrentielles (Derna 2023, Mandra 2017) : l'eau suit les rues, pas les points bas",
+  "les probabilités ne sont pas calibrées inondation par inondation : afficher des niveaux, jamais des probabilités",
+  "dit où l'eau s'accumule, pas quand : aucune prévision minutée",
+  "pas encore validé en Tunisie : il faut une liste des routes coupées (Protection civile, ministère de l'Équipement)",
+  "seuil de 44 mm ajusté sur des données satellite (IMERG) : à revérifier avec les pluviomètres et la prévision en temps réel"
+ ]
+}
